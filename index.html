@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head> </head>
+  <body>
+    <canvas width="250" height="250" id="game" style="background-color: black"></canvas>
+    <script src="https://unpkg.com/kontra@8.0.0/kontra.min.js"></script>
+    <script>
+      let {
+        GameLoop,
+        Sprite,
+        bindKeys,
+        init,
+        initPointer,
+        keyPressed,
+        onPointer,
+        randInt,
+        Text,
+        track,
+        pointerOver,
+        Button,
+      } = kontra;
+
+      let { canvas } = init();
+      initPointer();
+
+      const state = {
+        alive: true,
+        lives: 3,
+        time: 0,
+        handleAlive: function () {
+          this.alive = !this.alive;
+        },
+      };
+
+      const text = new Text({
+        text: 'Hello',
+        font: '32px Arial',
+        color: 'green',
+        alive: true,
+        x: 20,
+        y: 20,
+        textAlign: 'center',
+        hit: function () {
+          this.x = randInt(40, canvas.width - 30);
+          this.y = randInt(25, canvas.height - 30);
+        },
+      });
+
+      const gameOver = new Text({
+        text: 'GAME OVER',
+        color: 'green',
+        x: canvas.width / 5 - 20,
+        y: canvas.height / 2 - 20,
+        textAlign: 'center',
+      });
+
+      const restartButton = new Button({
+        text: {
+          text: 'Start Again',
+          color: 'green',
+          fontSize: '10px',
+        },
+        border: '1px white',
+        padx: 20,
+        pady: 5,
+        x: gameOver.x + 20,
+        y: gameOver.y + 40,
+        hit: function () {
+          this.x = randInt(40, canvas.width - 30);
+          this.y = randInt(25, canvas.height - 30);
+        },
+        onPress: function () {
+          state.handleAlive();
+        },
+        render() {
+          this.context.lineWidth = 3;
+          this.context.strokeStyle = 'white';
+          this.context.strokeRect(
+            0 - this.padx,
+            0 - this.pady,
+            this.width + this.padx * 2,
+            this.height + this.pady * 2
+          );
+        },
+      });
+
+      let loop = GameLoop({
+        render: function () {
+          if (state.alive) {
+            text.render();
+          } else {
+            gameOver.render();
+            restartButton.render();
+          }
+        },
+        update: function () {
+          onPointer('down', (e, object) => {
+            if (pointerOver(text)) {
+              text.hit();
+            } else if (pointerOver(restartButton)) {
+              restartButton.onPress();
+            } else if (state.alive) {
+              state.handleAlive();
+            }
+          });
+        },
+      });
+
+      track(text);
+      loop.start();
+    </script>
+  </body>
+</html>
